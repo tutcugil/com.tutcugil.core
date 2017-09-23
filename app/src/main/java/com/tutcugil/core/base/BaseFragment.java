@@ -9,6 +9,7 @@ import android.os.Bundle;
 
 import com.tutcugil.core.helper.HelperJson;
 import com.tutcugil.core.io.Logger;
+import com.tutcugil.core.task.TaskExecutor;
 
 /**
  * Created by Muhammet TUTCUGIL on 23.09.2017.
@@ -18,6 +19,7 @@ import com.tutcugil.core.io.Logger;
 public abstract class BaseFragment extends Fragment {
     private static final String KEY_DATA = "fragment_data";
 
+    protected transient TaskExecutor mTaskExecutor;
     protected transient Context mContext;
     protected Object mData;
 
@@ -72,6 +74,8 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        mTaskExecutor = TaskExecutor.getInstance();
     }
 
     @Override

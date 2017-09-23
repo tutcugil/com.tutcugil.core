@@ -5,8 +5,9 @@ import android.os.AsyncTask;
 import com.tutcugil.core.interfaces.ITaskInterface;
 import com.tutcugil.core.io.Logger;
 import com.tutcugil.core.network.HttpRequest;
+import com.tutcugil.core.task.TaskExecutor;
 
-import okhttp3.RequestBody;
+import okhttp3.Request;
 import okhttp3.Response;
 
 /**
@@ -16,13 +17,11 @@ import okhttp3.Response;
 
 public class BaseHttpTask extends AsyncTask<String, String, Response> {
     private ITaskInterface mTaskInterface;
-    private RequestBody mRequestBody;
-    private String mUrl;
+    private Request mRequest;
 
-    public BaseHttpTask(String url, RequestBody requestBody, ITaskInterface taskInterface) {
-        mUrl = url;
+    public BaseHttpTask(Request request, ITaskInterface taskInterface) {
+        mRequest = request;
         mTaskInterface = taskInterface;
-        mRequestBody   = requestBody;
     }
 
     @Override
@@ -40,10 +39,7 @@ public class BaseHttpTask extends AsyncTask<String, String, Response> {
     @Override
     protected Response doInBackground(String... params) {
         try{
-            if ("GET".equals(params[0]))
-                return HttpRequest.get(params[1]);
-
-            return HttpRequest.post(params[1], mRequestBody);
+            return HttpRequest.make(mRequest);
         } catch (Exception ex) {
             Logger.error(ex);
 
@@ -58,5 +54,7 @@ public class BaseHttpTask extends AsyncTask<String, String, Response> {
         super.onPostExecute(response);
 
         mTaskInterface.onFinished(response);
+
+        TaskExecutor.getInstance().clean();
     }
 }

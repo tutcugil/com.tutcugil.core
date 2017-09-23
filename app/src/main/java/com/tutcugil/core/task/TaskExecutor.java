@@ -3,38 +3,70 @@ package com.tutcugil.core.task;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.tutcugil.core.base.BaseClass;
+import com.tutcugil.core.base.BaseHttpTask;
 
-import java.util.Queue;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Muhammet TUTCUGIL on 23.09.2017.
  * http://www.tutcugil.com
  */
 
-public class TaskExecutor extends BaseClass {
+public class TaskExecutor{
     private static TaskExecutor mTaskExecutor;
-    private Queue<AsyncTask> mTasks;
+    private Map<String, BaseHttpTask> mTasks = new HashMap<>();
 
     private TaskExecutor(){
 
     }
 
-    public static TaskExecutor getInstance(Context context){
-        if (mTaskExecutor == null) {
+    public static TaskExecutor getInstance(){
+        if (mTaskExecutor == null)
             mTaskExecutor = new TaskExecutor();
-            mTaskExecutor.setContext(context);
-        }
 
         return mTaskExecutor;
     }
 
-    public void add(AsyncTask task){
-
+    public void execute(String key, BaseHttpTask task){
+        execute(key, task, false);
     }
 
-    @Override
-    protected String getTAG() {
-        return "TaskExecutor";
+    public void execute(String key, BaseHttpTask task, boolean abort){
+        if (!mTasks.containsKey(key)) {
+             mTasks.put(key, task);
+
+             task.execute();
+             return;
+        }
+
+        BaseHttpTask currentTask = mTasks.get(key);
+        if (currentTask != null
+                && currentTask.getStatus() != AsyncTask.Status.FINISHED) {
+
+            if (!abort)
+                return;
+
+            mTasks.get(key).cancel(true);
+            mTasks.remove(key);
+            return;
+        }
+
+        mTasks.remove(key);
+        mTasks.put(key, task);
+
+        task.execute();
+    }
+
+    public void clean(){
+        for (String key : mTasks.keySet()) {
+            BaseHttpTask task = mTasks.get(key);
+
+            if (task != null
+                    && task.getStatus() != AsyncTask.Status.FINISHED)
+                continue;
+
+            mTasks.remove(key);
+        }
     }
 }
